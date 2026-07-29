@@ -80,14 +80,44 @@
       rgba(255, 255, 255, 0.62);
     box-shadow: var(--shadow);
     padding: 20px 14px 16px;
-    overflow: hidden;
     backdrop-filter: blur(22px);
   }
 
-  .header { padding: 4px 4px 14px; }
+  .header-sentinel {
+    height: 1px;
+  }
+
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    padding: 20px 14px 14px;
+    margin: -20px -14px 0;
+    border-radius: 33px 33px 0 0;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.88));
+    transition: padding 220ms ease, box-shadow 220ms ease;
+  }
+
+  .header.compact {
+    padding: 12px 4px 10px;
+    box-shadow: 0 10px 20px -6px rgba(42, 62, 104, 0.16);
+  }
+
+  .header .eyebrow {
+    overflow: hidden;
+    max-height: 20px;
+    margin: 0 0 8px;
+    transition: max-height 220ms ease, opacity 220ms ease, margin 220ms ease;
+  }
+
+  .header.compact .eyebrow {
+    max-height: 0;
+    margin: 0;
+    opacity: 0;
+  }
 
   .eyebrow {
-    margin: 0 0 8px;
     color: #7d88a2;
     font-size: 11px;
     font-weight: 700;
@@ -95,41 +125,53 @@
     text-transform: uppercase;
   }
 
+  .title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .title-block { min-width: 0; }
+
   h1 {
     margin: 0;
-    font-size: 30px;
-    line-height: 1.06;
+    font-size: 26px;
+    line-height: 1.1;
     letter-spacing: 0;
     font-weight: 720;
-    max-width: 78%;
+    transition: font-size 220ms ease;
+  }
+
+  .header.compact h1 {
+    font-size: 20px;
   }
 
   .subtitle {
-    margin: 7px 0 0;
+    margin: 3px 0 0;
     color: var(--muted);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
   }
 
   .live-clock {
-    position: fixed;
-    top: 22px;
-    right: max(16px, calc((100vw - 430px) / 2 + 16px));
-    z-index: 40;
-    min-width: 70px;
+    flex-shrink: 0;
+    min-width: 62px;
     border: 1px solid rgba(255, 255, 255, 0.75);
-    border-radius: 18px;
-    padding: 9px 12px 8px;
+    border-radius: 14px;
+    padding: 6px 10px 5px;
     text-align: center;
     background: rgba(255, 255, 255, 0.7);
-    box-shadow: 0 12px 28px rgba(45, 64, 110, 0.18);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .header.compact .live-clock {
+    border-radius: 12px;
+    padding: 5px 9px 4px;
   }
 
   .live-clock span {
     display: block;
-    font-size: 17px;
+    font-size: 14px;
     line-height: 1;
     font-weight: 500;
     font-variant-numeric: tabular-nums;
@@ -137,16 +179,12 @@
 
   .live-clock small {
     display: block;
-    margin-top: 4px;
+    margin-top: 3px;
     color: #7b8498;
-    font-size: 9px;
+    font-size: 7.5px;
     font-weight: 800;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-  }
-
-  @media (max-width: 462px) {
-    .live-clock { right: 16px; }
   }
 
   /* Day progress bar */
@@ -339,14 +377,14 @@
   }
 
   .card.past {
-    opacity: 0.5;
+    opacity: 0.25;
     box-shadow: 0 8px 18px rgba(42, 62, 104, 0.08);
     transform: translateY(0) scale(0.995);
   }
 
   .card.previous-day {
     filter: grayscale(0.85) saturate(0.3);
-    opacity: 0.6;
+    opacity: 0.4;
     box-shadow: 0 8px 18px rgba(42, 62, 104, 0.08);
     transform: translateY(0) scale(0.995);
   }
@@ -488,6 +526,7 @@
   @media (max-width: 360px) {
     .app-shell { padding-inline: 0; }
     .phone { border-radius: 0; border-left: 0; border-right: 0; }
+    .header { border-radius: 0; }
     h1 { font-size: 27px; }
     .day-tab { font-size: 10.5px; padding: 7px 1px 6px; }
     .icon { width: 33px; height: 33px; }
@@ -499,17 +538,21 @@
 </style>
 </head>
 <body>
-  <div class="live-clock" aria-label="Current time">
-    <span id="liveTime">--:--</span>
-    <small>Live</small>
-  </div>
-
   <main class="app-shell" aria-label="Weekly schedule">
     <section class="phone">
-      <header class="header">
+      <div class="header-sentinel" id="headerSentinel"></div>
+      <header class="header" id="header">
         <p class="eyebrow">Week at a Glance</p>
-        <h1>NB's Schedule</h1>
-        <p class="subtitle" id="todayLabel">Loading today</p>
+        <div class="title-row">
+          <div class="title-block">
+            <h1>NB's Schedule</h1>
+            <p class="subtitle" id="todayLabel">Loading today</p>
+          </div>
+          <div class="live-clock" aria-label="Current time">
+            <span id="liveTime">--:--</span>
+            <small>Live</small>
+          </div>
+        </div>
         <nav class="day-tabs" id="dayTabs" aria-label="Select day"></nav>
       </header>
 
@@ -702,8 +745,13 @@
           ? dayLabelFor(visibleEntries[0].days, selectedDay)
           : "Daily";
 
+        // For the overnight Sleep block (22:45 -> 06:00), treat it as "current"
+        // only up to midnight. After midnight, nothing is current until Wake Up —
+        // this doesn't change the displayed time/duration text, only the logic.
+        const logicEnd = block.end < block.start ? 1440 : block.end;
+
         return `
-          <article class="card" style="${style}" data-start="${block.start}" data-end="${block.end}">
+          <article class="card" style="${style}" data-start="${block.start}" data-end="${logicEnd}">
             <div class="card-row">
               <span class="day-label">${dayLabelText}</span>
               <span class="time">${block.time}</span>
@@ -881,6 +929,18 @@
     renderSchedule();
     updateLiveState({ shouldScroll: true });
     window.setInterval(() => updateLiveState(), 30000);
+
+    const headerEl = document.querySelector("#header");
+    const headerSentinelEl = document.querySelector("#headerSentinel");
+    if (headerEl && headerSentinelEl && "IntersectionObserver" in window) {
+      const headerObserver = new IntersectionObserver(
+        ([entry]) => {
+          headerEl.classList.toggle("compact", !entry.isIntersecting);
+        },
+        { threshold: 0 }
+      );
+      headerObserver.observe(headerSentinelEl);
+    }
   </script>
 </body>
 </html>
