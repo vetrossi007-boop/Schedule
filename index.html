@@ -37,6 +37,32 @@
 
   button { font: inherit; }
 
+  @keyframes currentTaskFloat {
+    0%, 100% {
+      box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--card-accent) 18%, transparent),
+        0 0 12px 1px color-mix(in srgb, var(--card-accent) 25%, transparent),
+        0 20px 44px rgba(42, 62, 104, 0.16);
+    }
+    50% {
+      box-shadow:
+        0 0 0 6px color-mix(in srgb, var(--card-accent) 24%, transparent),
+        0 0 24px 4px color-mix(in srgb, var(--card-accent) 34%, transparent),
+        0 28px 58px rgba(42, 62, 104, 0.22);
+    }
+  }
+
+  @keyframes scheduleCardIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   .app-shell {
     min-height: 100vh;
     display: flex;
@@ -196,11 +222,20 @@
     inset: 0;
     width: 0%;
     background: var(--seg-color);
-    transition: width 600ms ease;
+    transition: width 900ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   @media (max-width: 462px) {
     .day-progress { bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 20px)); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.001ms !important;
+    }
   }
 
   /* Day tabs */
@@ -222,7 +257,7 @@
     font-weight: 650;
     text-align: center;
     cursor: pointer;
-    transition: background 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 100ms ease;
+    transition: background 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 140ms ease;
   }
 
   .day-tab:active { transform: scale(0.96); }
@@ -241,8 +276,8 @@
 
   .schedule {
     display: grid;
-    gap: 10px;
-    padding: 14px 1px 20px;
+    gap: 14px;
+    padding: 18px 5px 24px;
   }
 
   .card {
@@ -250,6 +285,7 @@
     --card-next: #4fb0b5;
     --card-border: rgba(80, 124, 187, 0.22);
     position: relative;
+    z-index: 1;
     border: 1px solid var(--card-border);
     border-radius: 22px;
     padding: 12px 14px 13px;
@@ -262,10 +298,20 @@
       );
     box-shadow: 0 12px 30px rgba(42, 62, 104, 0.12);
     overflow: visible;
+    transform: translateY(0);
+    transform-origin: center;
+    animation: scheduleCardIn 260ms ease both;
+    animation-delay: var(--card-in-delay, 0ms);
   }
 
   .card {
-    transition: opacity 260ms ease, filter 260ms ease, box-shadow 260ms ease, border-color 260ms ease, background 260ms ease;
+    transition:
+      opacity 620ms cubic-bezier(0.22, 1, 0.36, 1),
+      filter 620ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 720ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 620ms cubic-bezier(0.22, 1, 0.36, 1),
+      background 720ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 720ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .card.current {
@@ -276,6 +322,10 @@
       0 0 10px 1px color-mix(in srgb, var(--card-accent) 30%, transparent),
       0 18px 38px rgba(42, 62, 104, 0.14);
     opacity: 1;
+    z-index: 5;
+    transform: translateY(-2px) scale(1.01);
+    animation: currentTaskFloat 3.4s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+    animation-delay: 0ms;
   }
 
   .card.current .day-label,
@@ -291,12 +341,14 @@
   .card.past {
     opacity: 0.5;
     box-shadow: 0 8px 18px rgba(42, 62, 104, 0.08);
+    transform: translateY(0) scale(0.995);
   }
 
   .card.previous-day {
     filter: grayscale(0.85) saturate(0.3);
     opacity: 0.6;
     box-shadow: 0 8px 18px rgba(42, 62, 104, 0.08);
+    transform: translateY(0) scale(0.995);
   }
 
   .now-badge {
@@ -564,6 +616,8 @@
     const dayProgressTextEl = document.querySelector("#dayProgressText");
     const dayProgressTaskEl = document.querySelector("#dayProgressTask");
 
+    let lastCurrentTaskId = null;
+
     function todayJsDay() {
       return new Date().getDay();
     }
@@ -627,12 +681,14 @@
 
         const accent = cardPalette[paletteIndex % cardPalette.length];
         const nextAccent = cardPalette[(paletteIndex + 1) % cardPalette.length];
+        const animationDelay = Math.min(paletteIndex * 28, 180);
         paletteIndex += 1;
 
         const style = [
           `--card-accent: ${accent}`,
           `--card-next: ${nextAccent}`,
-          `--card-border: color-mix(in srgb, ${accent} 42%, white)`
+          `--card-border: color-mix(in srgb, ${accent} 42%, white)`,
+          `--card-in-delay: ${animationDelay}ms`
         ].join(";");
 
         const activitiesHtml = visibleEntries.map(entry => `
@@ -674,6 +730,14 @@
 
     function formatClock(date) {
       return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function scrollCardToCenter(card, delay = 0) {
+      window.setTimeout(() => {
+        const rect = card.getBoundingClientRect();
+        const targetTop = window.scrollY + rect.top - ((window.innerHeight - rect.height) / 2);
+        window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+      }, delay);
     }
 
     const WAKE_START = 360; // 06:00
@@ -738,6 +802,7 @@
       const monthDay = now.toLocaleDateString([], { month: "short", day: "numeric" });
 
       liveTimeEl.textContent = formatClock(now);
+      document.querySelector(".live-clock small").textContent = "Live";
       todayLabelEl.textContent = `${longDay}, ${monthDay}`;
 
       document.querySelectorAll(".now-badge").forEach(badge => badge.remove());
@@ -751,6 +816,7 @@
         const todayIndex = DAYS.findIndex(d => d.key === keyForJsDay(todayJsDay()));
         const selectedIndex = DAYS.findIndex(d => d.key === selectedDay);
         const isPreviousDay = selectedIndex < todayIndex;
+        lastCurrentTaskId = null;
 
         cards.forEach(card => {
           card.classList.remove("current", "past");
@@ -790,16 +856,22 @@
 
       let currentTaskTitle = null;
       if (currentCard) {
+        const currentTaskId = `${currentCard.dataset.start}-${currentCard.dataset.end}`;
+        const currentTaskChanged = currentTaskId !== lastCurrentTaskId;
+        lastCurrentTaskId = currentTaskId;
+
         currentCard.classList.add("current");
         const badge = document.createElement("span");
         badge.className = "now-badge";
         badge.textContent = "Now";
         currentCard.appendChild(badge);
-        if (shouldScroll) {
-          window.setTimeout(() => currentCard.scrollIntoView({ block: "center", behavior: "smooth" }), 180);
+        if (shouldScroll || currentTaskChanged) {
+          scrollCardToCenter(currentCard, shouldScroll ? 180 : 80);
         }
         const titleEl = currentCard.querySelector(".activity-title");
         currentTaskTitle = titleEl ? titleEl.textContent : null;
+      } else {
+        lastCurrentTaskId = null;
       }
 
       updateDayProgress(nowMin, currentTaskTitle);
