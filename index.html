@@ -52,17 +52,6 @@
     }
   }
 
-  @keyframes scheduleCardIn {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
   .app-shell {
     min-height: 100vh;
     display: flex;
@@ -342,18 +331,23 @@
     overflow: visible;
     transform: translateY(0);
     transform-origin: center;
-    animation: scheduleCardIn 260ms ease both;
-    animation-delay: var(--card-in-delay, 0ms);
+    opacity: 1;
   }
 
   .card {
     transition:
-      opacity 620ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 550ms cubic-bezier(0.22, 1, 0.36, 1),
       filter 620ms cubic-bezier(0.22, 1, 0.36, 1),
       box-shadow 720ms cubic-bezier(0.22, 1, 0.36, 1),
       border-color 620ms cubic-bezier(0.22, 1, 0.36, 1),
       background 720ms cubic-bezier(0.22, 1, 0.36, 1),
-      transform 720ms cubic-bezier(0.22, 1, 0.36, 1);
+      transform 700ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition-delay: var(--card-in-delay, 0ms);
+  }
+
+  .card.card-enter {
+    opacity: 0;
+    transform: translateY(64px);
   }
 
   .card.current {
@@ -381,14 +375,14 @@
   }
 
   .card.past {
-    opacity: 0.25;
+    opacity: 0.5;
     box-shadow: 0 8px 18px rgba(42, 62, 104, 0.08);
     transform: translateY(0) scale(0.995);
   }
 
   .card.previous-day {
     filter: grayscale(0.85) saturate(0.3);
-    opacity: 0.4;
+    opacity: 0.5;
     box-shadow: 0 8px 18px rgba(42, 62, 104, 0.08);
     transform: translateY(0) scale(0.995);
   }
@@ -755,7 +749,7 @@
         const logicEnd = block.end < block.start ? 1440 : block.end;
 
         return `
-          <article class="card" style="${style}" data-start="${block.start}" data-end="${logicEnd}">
+          <article class="card card-enter" style="${style}" data-start="${block.start}" data-end="${logicEnd}">
             <div class="card-row">
               <span class="day-label">${dayLabelText}</span>
               <span class="time">${block.time}</span>
@@ -768,6 +762,18 @@
       }).join("");
 
       scheduleEl.innerHTML = cardsHtml || `<p class="empty-state">Nothing scheduled for this day.</p>`;
+
+      // Trigger the entrance transition (fade + slide up) by removing the
+      // starting "card-enter" state on the next frame, so it animates via
+      // the same transition system used for later state changes (past,
+      // current, previous-day) instead of a separate CSS animation that
+      // could conflict with those transitions.
+      const enteringCards = scheduleEl.querySelectorAll(".card-enter");
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          enteringCards.forEach(card => card.classList.remove("card-enter"));
+        });
+      });
     }
 
     function minutesNow(date) {
