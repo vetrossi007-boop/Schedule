@@ -81,6 +81,7 @@
     box-shadow: var(--shadow);
     padding: 20px 14px 16px;
     backdrop-filter: blur(22px);
+    clip-path: inset(0 round 34px);
   }
 
   .header-sentinel {
@@ -91,11 +92,10 @@
     position: sticky;
     top: 0;
     z-index: 30;
-    padding: 20px 14px 14px;
+    padding: 20px 14px 16px;
     margin: -20px -14px 0;
-    border-radius: 33px 33px 0 0;
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.88));
+    background: #fdfdff;
+    border-bottom: 1px solid rgba(120, 135, 170, 0.14);
     transition: padding 220ms ease, box-shadow 220ms ease;
   }
 
@@ -136,7 +136,7 @@
 
   h1 {
     margin: 0;
-    font-size: 26px;
+    font-size: 32px;
     line-height: 1.1;
     letter-spacing: 0;
     font-weight: 720;
@@ -144,14 +144,18 @@
   }
 
   .header.compact h1 {
-    font-size: 20px;
+    font-size: 26px;
   }
 
   .subtitle {
     margin: 3px 0 0;
     color: var(--muted);
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 500;
+  }
+
+  .header.compact .subtitle {
+    font-size: 12.5px;
   }
 
   .live-clock {
@@ -194,7 +198,7 @@
     bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 20px));
     transform: translateX(-50%);
     z-index: 40;
-    width: min(calc(100% - 20px), 430px);
+    width: min(calc(100% - 58px), 392px);
     border: 1px solid rgba(255, 255, 255, 0.85);
     border-radius: 18px;
     padding: 10px 14px 12px;
@@ -525,9 +529,9 @@
 
   @media (max-width: 360px) {
     .app-shell { padding-inline: 0; }
-    .phone { border-radius: 0; border-left: 0; border-right: 0; }
+    .phone { border-radius: 0; border-left: 0; border-right: 0; clip-path: none; }
     .header { border-radius: 0; }
-    h1 { font-size: 27px; }
+    h1 { font-size: 28px; }
     .day-tab { font-size: 10.5px; padding: 7px 1px 6px; }
     .icon { width: 33px; height: 33px; }
     .icon svg { width: 18px; height: 18px; }
