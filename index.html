@@ -5,6 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>NB's Schedule</title>
 <style>
+
+  @property --active-accent {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #5b8fd6;
+  }
+
+  @property --header-color {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #fdfdff;
+  }
+
   :root {
     color-scheme: light;
     --ink: #172033;
@@ -37,21 +50,6 @@
 
   button { font: inherit; }
 
-  @keyframes currentTaskFloat {
-    0%, 100% {
-      box-shadow:
-        0 0 0 3px color-mix(in srgb, var(--card-accent) 18%, transparent),
-        0 0 12px 1px color-mix(in srgb, var(--card-accent) 25%, transparent),
-        0 20px 44px rgba(42, 62, 104, 0.16);
-    }
-    50% {
-      box-shadow:
-        0 0 0 6px color-mix(in srgb, var(--card-accent) 24%, transparent),
-        0 0 24px 4px color-mix(in srgb, var(--card-accent) 34%, transparent),
-        0 28px 58px rgba(42, 62, 104, 0.22);
-    }
-  }
-
   .app-shell {
     min-height: 100vh;
     display: flex;
@@ -61,6 +59,7 @@
   }
 
   .phone {
+    --active-accent: #5b8fd6;
     width: min(100%, 430px);
     border: 1px solid rgba(255, 255, 255, 0.74);
     border-radius: 34px;
@@ -71,27 +70,53 @@
     padding: 20px 14px 16px;
     backdrop-filter: blur(22px);
     clip-path: inset(0 round 34px);
+    
+    /* ADDED: Smoothly animates the accent color */
+    transition: --active-accent 600ms ease;
   }
 
   .header-sentinel {
     height: 1px;
   }
 
+  /* --- HEADER BACKGROUND GRADIENT (25% Color / 75% Transparent) --- */
   .header {
+    --header-color: #fdfdff;
     position: sticky;
     top: 0;
     z-index: 30;
-    padding: 20px 14px 16px;
+    padding: 20px 14px 12px;
     margin: -20px -14px 0;
-    background: #fdfdff;
-    border-bottom: 1px solid rgba(120, 135, 170, 0.14);
-    transition: padding 220ms ease, box-shadow 220ms ease;
+    background: linear-gradient(
+      to bottom,
+      var(--header-color) 0%,
+      var(--header-color) 25%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    
+    /* UPDATED: Added --header-color so the background fades smoothly */
+    transition: box-shadow 220ms ease, --header-color 600ms ease;
+    
+    /* Adds a frosted glass blur to hide cards sliding underneath! */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
-  .header.compact {
-    padding: 12px 4px 10px;
-    box-shadow: 0 10px 20px -6px rgba(42, 62, 104, 0.16);
+  .header::after {
+    display: none;
   }
+
+  .header.tinted {
+    /* Mixing with white instead of transparent keeps the color bright and energetic */
+    --header-color: color-mix(in srgb, var(--active-accent, #5b8fd6) 20%, white);
+    background: linear-gradient(
+      to bottom,
+      var(--header-color) 0%,
+      var(--header-color) 35%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  }
+
 
   .header .eyebrow {
     overflow: hidden;
@@ -154,7 +179,7 @@
     border-radius: 14px;
     padding: 6px 10px 5px;
     text-align: center;
-    background: rgba(255, 255, 255, 0.7);
+    background: #ffffff;
   }
 
   .header.compact .live-clock {
@@ -278,11 +303,13 @@
   }
 
   .day-tab {
+    position: relative;
+    z-index: 2;
     appearance: none;
     border: 1px solid rgba(255, 255, 255, 0.68);
     border-radius: 13px;
     padding: 8px 2px 7px;
-    background: rgba(255, 255, 255, 0.5);
+    background: #ffffff;
     color: #596178;
     font-size: 11.5px;
     font-weight: 650;
@@ -309,6 +336,7 @@
     display: grid;
     gap: 14px;
     padding: 18px 5px 24px;
+    position: relative;
   }
 
   .card {
@@ -335,19 +363,19 @@
   }
 
   .card {
+    /* Notice 'opacity' is removed from here so it instantly reacts to your scroll! */
     transition:
-      opacity 550ms cubic-bezier(0.22, 1, 0.36, 1),
       filter 620ms cubic-bezier(0.22, 1, 0.36, 1),
       box-shadow 720ms cubic-bezier(0.22, 1, 0.36, 1),
       border-color 620ms cubic-bezier(0.22, 1, 0.36, 1),
       background 720ms cubic-bezier(0.22, 1, 0.36, 1),
-      transform 700ms cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform 640ms cubic-bezier(0.18, 1.35, 0.32, 1);
     transition-delay: var(--card-in-delay, 0ms);
   }
 
   .card.card-enter {
     opacity: 0;
-    transform: translateY(64px);
+    transform: translateY(105px);
   }
 
   .card.current {
@@ -360,8 +388,6 @@
     opacity: 1;
     z-index: 5;
     transform: translateY(-2px) scale(1.01);
-    animation: currentTaskFloat 3.4s cubic-bezier(0.45, 0, 0.2, 1) infinite;
-    animation-delay: 0ms;
   }
 
   .card.current .day-label,
@@ -421,7 +447,6 @@
     text-overflow: ellipsis;
   }
 
-
   .time {
     justify-self: center;
     color: #314368;
@@ -433,7 +458,6 @@
     white-space: nowrap;
   }
 
-
   .duration {
     justify-self: end;
     color: #6f7890;
@@ -444,7 +468,6 @@
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
-
 
   .divider {
     height: 1px;
@@ -481,7 +504,6 @@
     color: color-mix(in srgb, var(--card-accent) 78%, #24324f);
     background: rgba(255, 255, 255, 0.6);
   }
-
 
   .icon svg {
     width: 21px;
@@ -637,7 +659,6 @@
       "#d25f5a", "#c66aa0", "#8b6fc9", "#4f6fae"
     ];
 
-    // Mon .. Sun order, matching JS getDay() where Sun=0
     const DAYS = [
       { key: "Mon", full: "Monday", jsDay: 1 },
       { key: "Tue", full: "Tuesday", jsDay: 2 },
@@ -656,6 +677,21 @@
     const dayProgressTrackEl = document.querySelector("#dayProgressTrack");
     const dayProgressTextEl = document.querySelector("#dayProgressText");
     const dayProgressTaskEl = document.querySelector("#dayProgressTask");
+    const phoneEl = document.querySelector(".phone");
+    const headerElForTint = document.querySelector("#header");
+
+    function applyActiveAccent(cardEl) {
+      if (!phoneEl) return;
+      if (!cardEl) {
+        phoneEl.classList.remove("tinted");
+        if (headerElForTint) headerElForTint.classList.remove("tinted");
+        return;
+      }
+      const accent = cardEl.style.getPropertyValue("--card-accent").trim();
+      if (accent) phoneEl.style.setProperty("--active-accent", accent);
+      phoneEl.classList.add("tinted");
+      if (headerElForTint) headerElForTint.classList.add("tinted");
+    }
 
     let lastCurrentTaskId = null;
 
@@ -728,7 +764,7 @@
         const style = [
           `--card-accent: ${accent}`,
           `--card-next: ${nextAccent}`,
-          `--card-border: color-mix(in srgb, ${accent} 42%, white)`,
+          `--card-border: color-mix(in srgb, ${accent} 15%, transparent)`,
           `--card-in-delay: ${animationDelay}ms`
         ].join(";");
 
@@ -743,9 +779,6 @@
           ? dayLabelFor(visibleEntries[0].days, selectedDay)
           : "Daily";
 
-        // For the overnight Sleep block (22:45 -> 06:00), treat it as "current"
-        // only up to midnight. After midnight, nothing is current until Wake Up —
-        // this doesn't change the displayed time/duration text, only the logic.
         const logicEnd = block.end < block.start ? 1440 : block.end;
 
         return `
@@ -763,11 +796,6 @@
 
       scheduleEl.innerHTML = cardsHtml || `<p class="empty-state">Nothing scheduled for this day.</p>`;
 
-      // Trigger the entrance transition (fade + slide up) by removing the
-      // starting "card-enter" state on the next frame, so it animates via
-      // the same transition system used for later state changes (past,
-      // current, previous-day) instead of a separate CSS animation that
-      // could conflict with those transitions.
       const enteringCards = scheduleEl.querySelectorAll(".card-enter");
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
@@ -793,17 +821,19 @@
     function scrollCardToCenter(card, delay = 0) {
       window.setTimeout(() => {
         const rect = card.getBoundingClientRect();
-        const targetTop = window.scrollY + rect.top - ((window.innerHeight - rect.height) / 2);
+        const headerHeight = headerElForTint ? headerElForTint.getBoundingClientRect().height : 0;
+        const visibleHeight = window.innerHeight - headerHeight;
+        const targetTop = window.scrollY + rect.top - headerHeight - ((visibleHeight - rect.height) / 2);
         window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
       }, delay);
     }
 
-    const WAKE_START = 360; // 06:00
-    const SLEEP_START = 1365; // 22:45
+    const WAKE_START = 360; 
+    const SLEEP_START = 1365; 
     let progressSegments = null;
 
     function buildProgressSegments() {
-      const segmentBlocks = schedule.slice(0, schedule.length - 1); // exclude Sleep
+      const segmentBlocks = schedule.slice(0, schedule.length - 1); 
       dayProgressTrackEl.innerHTML = "";
       return segmentBlocks.map((block, i) => {
         const duration = block.end - block.start;
@@ -879,9 +909,11 @@
         cards.forEach(card => {
           card.classList.remove("current", "past");
           card.classList.toggle("previous-day", isPreviousDay);
-          card.style.opacity = "";
+          card.dataset.baseOpacity = isPreviousDay ? "0.5" : "1";
         });
+        applyActiveAccent(null);
         updateDayProgress(nowMin, null);
+        applyScrollFade();
         return;
       }
 
@@ -894,12 +926,13 @@
         const isCurrent = isWithinBlock(nowMin, start, end);
 
         card.classList.remove("current", "past", "previous-day");
-        card.style.opacity = "";
 
         if (isCurrent) {
           currentCard = card;
+          card.dataset.baseOpacity = "1";
         } else if (end <= start ? false : end <= nowMin) {
           card.classList.add("past");
+          card.dataset.baseOpacity = "0.5";
         } else {
           const distance = start - nowMin;
           upcoming.push({ card, distance });
@@ -909,8 +942,10 @@
       upcoming.sort((a, b) => a.distance - b.distance);
       upcoming.forEach((item, index) => {
         const brightness = Math.max(brightnessFloor, 0.9 - index * brightnessStep);
-        item.card.style.opacity = String(brightness);
+        item.card.dataset.baseOpacity = String(brightness);
       });
+
+      applyActiveAccent(currentCard || (upcoming[0] && upcoming[0].card) || null);
 
       let currentTaskTitle = null;
       if (currentCard) {
@@ -933,19 +968,84 @@
       }
 
       updateDayProgress(nowMin, currentTaskTitle);
+      applyScrollFade();
     }
+
+    function applyScrollFade() {
+      if (!headerElForTint) return;
+      
+      const headerBottom = headerElForTint.getBoundingClientRect().bottom;
+      
+      // We set the vanish point slightly inside the header so the card slides under just a bit
+      const vanishPoint = headerBottom - 10; 
+      
+      // A nice slow 120px fade distance
+      const SCROLL_FADE_ZONE = 120; 
+      const fadeStart = vanishPoint + SCROLL_FADE_ZONE;
+
+      document.querySelectorAll(".card").forEach(card => {
+        const rect = card.getBoundingClientRect();
+
+        // THE FIX: Measure from 80% down the card instead of the top edge.
+        // This guarantees the first card is safely outside the fade zone when at rest!
+        const cardTarget = rect.top + (rect.height * 0.8); 
+
+        let scrollFactor;
+        if (cardTarget >= fadeStart) {
+          scrollFactor = 1;
+        } else if (cardTarget <= vanishPoint) {
+          scrollFactor = 0;
+        } else {
+          scrollFactor = (cardTarget - vanishPoint) / SCROLL_FADE_ZONE;
+        }
+
+        const baseOpacity = card.dataset.baseOpacity !== undefined
+          ? parseFloat(card.dataset.baseOpacity)
+          : 1;
+
+        const finalOpacity = Math.max(0, Math.min(1, baseOpacity * scrollFactor));
+        card.style.opacity = String(finalOpacity);
+      });
+    }
+
+    let scrollFadeTicking = false;
+    function requestScrollFade() {
+      if (scrollFadeTicking) return;
+      scrollFadeTicking = true;
+      requestAnimationFrame(() => {
+        applyScrollFade();
+        scrollFadeTicking = false;
+      });
+    }
+
+    window.addEventListener("scroll", requestScrollFade, { passive: true });
+    window.addEventListener("resize", requestScrollFade);
 
     renderTabs();
     renderSchedule();
     updateLiveState({ shouldScroll: true });
+    applyScrollFade();
     window.setInterval(() => updateLiveState(), 30000);
 
     const headerEl = document.querySelector("#header");
     const headerSentinelEl = document.querySelector("#headerSentinel");
+    
+    // Dynamically measure header height so the fade overlay starts precisely 20px below it
+    function updateHeaderHeightCSS() {
+      if (headerEl) {
+        const h = headerEl.getBoundingClientRect().height;
+        document.documentElement.style.setProperty('--header-height', `${h + 20}px`);
+      }
+    }
+
+    window.addEventListener('resize', updateHeaderHeightCSS);
+    updateHeaderHeightCSS();
+
     if (headerEl && headerSentinelEl && "IntersectionObserver" in window) {
       const headerObserver = new IntersectionObserver(
         ([entry]) => {
           headerEl.classList.toggle("compact", !entry.isIntersecting);
+          requestAnimationFrame(updateHeaderHeightCSS);
         },
         { threshold: 0 }
       );
