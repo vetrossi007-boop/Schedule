@@ -9,7 +9,9 @@
   @property --active-accent {
     syntax: "<color>";
     inherits: true;
-    initial-value: #5b8fd6;
+    
+    /* Change this from blue to a neutral silver */
+    initial-value: #c8d0df; 
   }
 
   @property --header-color {
@@ -31,7 +33,8 @@
 
   html {
     min-height: 100%;
-    background: #f4f1ff;
+    /* 1. KILLED THE PURPLE HERE */
+    background: #ffffff; 
     overscroll-behavior-y: none;
   }
 
@@ -41,11 +44,21 @@
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, sans-serif;
     color: var(--ink);
-    background:
-      radial-gradient(circle at top left, rgba(255, 255, 255, 0.96), transparent 34rem),
-      linear-gradient(180deg, #edf7ff 0%, #f7f8ff 44%, #f4f1ff 100%);
+    
+    --active-accent: #c8d0df; 
+    --bg-tint: color-mix(in srgb, var(--active-accent) 18%, #ffffff);
+
+    /* UNIFIED FIX: Dynamically tracks your header height perfectly whether expanded or compact */
+    background: linear-gradient(
+      180deg, 
+      var(--bg-tint) 0%, 
+      var(--bg-tint) calc(var(--header-height, 150px) * 0.55), 
+      #ffffff calc(var(--header-height, 150px) + 10px),
+      #ffffff 100%
+    );
+    
     background-attachment: fixed;
-    background-size: 100% 100%;
+    transition: background 150ms ease-out, --active-accent 600ms ease;
   }
 
   button { font: inherit; }
@@ -61,43 +74,47 @@
   .phone {
     --active-accent: #5b8fd6;
     width: min(100%, 430px);
-    border: 1px solid rgba(255, 255, 255, 0.74);
+    
+    /* THE FIX: Replaced the hard border with a smooth inner shadow */
+    border: none;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.74), var(--shadow);
+    
     border-radius: 34px;
     background:
       linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.58)),
       rgba(255, 255, 255, 0.62);
-    box-shadow: var(--shadow);
     padding: 20px 14px 16px;
     backdrop-filter: blur(22px);
     clip-path: inset(0 round 34px);
-    
-    /* ADDED: Smoothly animates the accent color */
     transition: --active-accent 600ms ease;
   }
 
   .header-sentinel {
     height: 1px;
+    margin-bottom: -1px;
   }
 
   /* --- HEADER BACKGROUND GRADIENT (25% Color / 75% Transparent) --- */
   .header {
     --header-color: #fdfdff;
     position: sticky;
-    top: 0;
+    
+    /* 1. Pull the sticky point up by 1px */
+    top: -1px; 
+    
     z-index: 30;
     padding: 20px 14px 12px;
-    margin: -20px -14px 0;
+    
+    /* 2. Change -20px to -21px to pull the background over that white stroke */
+    margin: -21px -15px 0; 
+    
     background: linear-gradient(
       to bottom,
       var(--header-color) 0%,
       var(--header-color) 25%,
       rgba(255, 255, 255, 0) 100%
     );
-    
-    /* UPDATED: Added --header-color so the background fades smoothly */
     transition: box-shadow 220ms ease, --header-color 600ms ease;
-    
-    /* Adds a frosted glass blur to hide cards sliding underneath! */
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
@@ -107,12 +124,14 @@
   }
 
   .header.tinted {
-    /* Mixing with white instead of transparent keeps the color bright and energetic */
-    --header-color: color-mix(in srgb, var(--active-accent, #5b8fd6) 20%, white);
+    /* Mixing with white keeps the color bright and energetic */
+    --header-color: color-mix(in srgb, var(--active-accent, #c8d0df) 18%, white);
+    
+    /* THE FIX: The gradient now lives exclusively inside the header box and fades completely to transparent exactly at its bottom edge */
     background: linear-gradient(
-      to bottom,
+      180deg,
       var(--header-color) 0%,
-      var(--header-color) 35%,
+      var(--header-color) 45%,
       rgba(255, 255, 255, 0) 100%
     );
   }
@@ -632,7 +651,9 @@
       { time: "20:30 - 21:00", start: 1230, end: 1260, duration: "30 min",
         entries: [
           { icon: "laptop", days: "MWF", title: "Second Job" },
-          { icon: "rest", days: "TT", title: "Free Time / Relax" }
+          { icon: "rest", days: "TT", title: "Free Time / Relax" },
+          /* Added with a comma! */
+          { icon: "sparkle", days: "TTS", title: "Sanitization" } 
         ] },
       { time: "21:00 - 21:20", start: 1260, end: 1280, duration: "20 min",
         entries: [{ icon: "sparkle", days: "Daily", title: "Prayer" }] },
@@ -685,10 +706,18 @@
       if (!cardEl) {
         phoneEl.classList.remove("tinted");
         if (headerElForTint) headerElForTint.classList.remove("tinted");
+        
+        /* Clears the body color if no task is active */
+        document.body.style.removeProperty("--active-accent"); 
         return;
       }
       const accent = cardEl.style.getPropertyValue("--card-accent").trim();
-      if (accent) phoneEl.style.setProperty("--active-accent", accent);
+      if (accent) {
+        phoneEl.style.setProperty("--active-accent", accent);
+        
+        /* NEW: Shoots the active color up to the main page background! */
+        document.body.style.setProperty("--active-accent", accent); 
+      }
       phoneEl.classList.add("tinted");
       if (headerElForTint) headerElForTint.classList.add("tinted");
     }
@@ -724,12 +753,21 @@
     }
 
     function matchesSelectedDay(entry, selected) {
+      // 1. Check explicit specific patterns first (so TTS works on Saturday!)
+      if (entry.days === "MWF" && ["Mon", "Wed", "Fri"].includes(selected)) return true;
+      if (entry.days === "TT" && ["Tue", "Thu"].includes(selected)) return true;
+      if (entry.days === "TTS" && ["Tue", "Thu", "Sat"].includes(selected)) return true;
+
+      // 2. If it's the weekend, apply the strict "essential only" rule to everything else
       if (isWeekend(selected)) {
         return entry.essential === true;
       }
-      if (entry.days === "Daily") return true;
-      if (entry.days === "MWF") return ["Mon", "Wed", "Fri"].includes(selected);
-      if (entry.days === "TT") return ["Tue", "Thu"].includes(selected);
+      
+      // 3. If it's a standard weekday, allow all "Daily" tasks to show up
+      if (entry.days === "Daily") {
+        return true;
+      }
+      
       return false;
     }
 
@@ -742,10 +780,26 @@
 
       dayTabsEl.querySelectorAll(".day-tab").forEach(btn => {
         btn.addEventListener("click", () => {
-          selectedDay = btn.dataset.day;
-          renderTabs();
-          renderSchedule();
-          updateLiveState({ shouldScroll: true });
+          const clickedDay = btn.dataset.day;
+
+          if (clickedDay === selectedDay) {
+            // Elevator scroll to top if clicking the active day
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          } else {
+            selectedDay = clickedDay;
+            renderTabs();
+            renderSchedule();
+            
+            // THE FIX: Only auto-scroll/jump if they are switching back to "Today". 
+            // For future/past days, it leaves your scroll position completely stable!
+            if (selectedDay === keyForJsDay(todayJsDay())) {
+              updateLiveState({ shouldScroll: true });
+            } else {
+              updateLiveState({ shouldScroll: false });
+              // Optional: gently float back to top when looking at future days so you start at the beginning of their schedule
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }
         });
       });
     }
@@ -1044,7 +1098,12 @@
     if (headerEl && headerSentinelEl && "IntersectionObserver" in window) {
       const headerObserver = new IntersectionObserver(
         ([entry]) => {
-          headerEl.classList.toggle("compact", !entry.isIntersecting);
+          const isCompact = !entry.isIntersecting;
+          headerEl.classList.toggle("compact", isCompact);
+          
+          /* NEW: Tells the body background to shrink/expand in sync with the header! */
+          document.body.classList.toggle("header-compact", isCompact);
+          
           requestAnimationFrame(updateHeaderHeightCSS);
         },
         { threshold: 0 }
