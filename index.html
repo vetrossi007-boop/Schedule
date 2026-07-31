@@ -9,8 +9,6 @@
   @property --active-accent {
     syntax: "<color>";
     inherits: true;
-    
-    /* Change this from blue to a neutral silver */
     initial-value: #c8d0df; 
   }
 
@@ -33,7 +31,6 @@
 
   html {
     min-height: 100%;
-    /* 1. KILLED THE PURPLE HERE */
     background: #ffffff; 
     overscroll-behavior-y: none;
   }
@@ -44,11 +41,13 @@
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, sans-serif;
     color: var(--ink);
-    
-    --active-accent: #ffffff; 
-    --bg-tint: color-mix(in srgb, var(--active-accent) 18%, #ffffff);
+    background: #ffffff;
+    background-attachment: fixed;
+    transition: background 300ms ease, --active-accent 600ms ease;
+  }
 
-    /* UNIFIED FIX: Dynamically tracks your header height perfectly whether expanded or compact */
+  body.has-tint {
+    --bg-tint: color-mix(in srgb, var(--active-accent, #c8d0df) 18%, #ffffff);
     background: linear-gradient(
       180deg, 
       var(--bg-tint) 0%, 
@@ -56,9 +55,7 @@
       #ffffff calc(var(--header-height, 150px) + 10px),
       #ffffff 100%
     );
-    
     background-attachment: fixed;
-    transition: background 150ms ease-out, --active-accent 600ms ease;
   }
 
   button { font: inherit; }
@@ -74,11 +71,8 @@
   .phone {
     --active-accent: #5b8fd6;
     width: min(100%, 430px);
-    
-    /* THE FIX: Replaced the hard border with a smooth inner shadow */
     border: none;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.74), var(--shadow);
-    
     border-radius: 34px;
     background:
       linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.58)),
@@ -90,31 +84,24 @@
   }
 
   .header-sentinel {
-    height: 1px;
-    margin-bottom: -1px;
+    height: 10px;
+    margin-bottom: -10px;
   }
 
-  /* --- HEADER BACKGROUND GRADIENT (25% Color / 75% Transparent) --- */
   .header {
     --header-color: #fdfdff;
     position: sticky;
-    
-    /* 1. Pull the sticky point up by 1px */
     top: -1px; 
-    
     z-index: 30;
     padding: 20px 14px 12px;
-    
-    /* 2. Change -20px to -21px to pull the background over that white stroke */
     margin: -21px -15px 0; 
-    
     background: linear-gradient(
       to bottom,
       var(--header-color) 0%,
       var(--header-color) 25%,
       rgba(255, 255, 255, 0) 100%
     );
-    transition: box-shadow 220ms ease, --header-color 600ms ease;
+    transition: box-shadow 220ms ease, --header-color 600ms ease, padding 220ms ease;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
@@ -124,10 +111,7 @@
   }
 
   .header.tinted {
-    /* Mixing with white keeps the color bright and energetic */
     --header-color: color-mix(in srgb, var(--active-accent, #c8d0df) 18%, white);
-    
-    /* THE FIX: The gradient now lives exclusively inside the header box and fades completely to transparent exactly at its bottom edge */
     background: linear-gradient(
       180deg,
       var(--header-color) 0%,
@@ -135,7 +119,6 @@
       rgba(255, 255, 255, 0) 100%
     );
   }
-
 
   .header .eyebrow {
     overflow: hidden;
@@ -300,19 +283,6 @@
     transition: width 900ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  @media (max-width: 462px) {
-    .day-progress { bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 20px)); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.001ms !important;
-      animation-iteration-count: 1 !important;
-      scroll-behavior: auto !important;
-      transition-duration: 0.001ms !important;
-    }
-  }
-
   /* Day tabs */
   .day-tabs {
     display: grid;
@@ -379,10 +349,6 @@
     transform: translateY(0);
     transform-origin: center;
     opacity: 1;
-  }
-
-  .card {
-    /* Notice 'opacity' is removed from here so it instantly reacts to your scroll! */
     transition:
       filter 620ms cubic-bezier(0.22, 1, 0.36, 1),
       box-shadow 720ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -420,14 +386,13 @@
   }
 
   .card.past {
-    opacity: 0.5;
     box-shadow: 0 8px 18px rgba(42, 62, 104, 0.08);
     transform: translateY(0) scale(0.995);
   }
 
   .card.previous-day {
-    filter: grayscale(0.85) saturate(0.3);
-    opacity: 0.5;
+    filter: none;
+    opacity: 1;
     box-shadow: 0 8px 18px rgba(42, 62, 104, 0.08);
     transform: translateY(0) scale(0.995);
   }
@@ -552,28 +517,6 @@
     font-weight: 500;
     padding: 30px 10px;
   }
-
-  .footer {
-    display: flex;
-    justify-content: center;
-    padding-top: 7px;
-    color: #7c8498;
-    font-size: 11px;
-    font-weight: 600;
-  }
-
-  @media (max-width: 360px) {
-    .app-shell { padding-inline: 0; }
-    .phone { border-radius: 0; border-left: 0; border-right: 0; clip-path: none; }
-    .header { border-radius: 0; }
-    h1 { font-size: 28px; }
-    .day-tab { font-size: 10.5px; padding: 7px 1px 6px; }
-    .icon { width: 33px; height: 33px; }
-    .icon svg { width: 18px; height: 18px; }
-    .activity-title { font-size: 14px; max-width: calc(100% - 90px); }
-    .day-label { font-size: 10.5px; }
-    .time { font-size: 12.5px; }
-  }
 </style>
 </head>
 <body>
@@ -652,7 +595,6 @@
         entries: [
           { icon: "laptop", days: "MWF", title: "Second Job" },
           { icon: "rest", days: "TT", title: "Free Time / Relax" },
-          /* Added with a comma! */
           { icon: "sparkle", days: "TTS", title: "Sanitization" } 
         ] },
       { time: "21:00 - 21:20", start: 1260, end: 1280, duration: "20 min",
@@ -706,20 +648,16 @@
       if (!cardEl) {
         phoneEl.classList.remove("tinted");
         if (headerElForTint) headerElForTint.classList.remove("tinted");
-        
-        /* Clears the body color if no task is active */
-        document.body.style.removeProperty("--active-accent"); 
+        document.body.classList.remove("has-tint");
         return;
       }
       const accent = cardEl.style.getPropertyValue("--card-accent").trim();
       if (accent) {
         phoneEl.style.setProperty("--active-accent", accent);
-        
-        /* NEW: Shoots the active color up to the main page background! */
-        document.body.style.setProperty("--active-accent", accent); 
       }
       phoneEl.classList.add("tinted");
       if (headerElForTint) headerElForTint.classList.add("tinted");
+      document.body.classList.add("has-tint");
     }
 
     let lastCurrentTaskId = null;
@@ -753,21 +691,11 @@
     }
 
     function matchesSelectedDay(entry, selected) {
-      // 1. Check explicit specific patterns first (so TTS works on Saturday!)
       if (entry.days === "MWF" && ["Mon", "Wed", "Fri"].includes(selected)) return true;
       if (entry.days === "TT" && ["Tue", "Thu"].includes(selected)) return true;
       if (entry.days === "TTS" && ["Tue", "Thu", "Sat"].includes(selected)) return true;
-
-      // 2. If it's the weekend, apply the strict "essential only" rule to everything else
-      if (isWeekend(selected)) {
-        return entry.essential === true;
-      }
-      
-      // 3. If it's a standard weekday, allow all "Daily" tasks to show up
-      if (entry.days === "Daily") {
-        return true;
-      }
-      
+      if (isWeekend(selected)) return entry.essential === true;
+      if (entry.days === "Daily") return true;
       return false;
     }
 
@@ -786,10 +714,8 @@
             window.scrollTo({ top: 0, behavior: "smooth" });
           } else {
             selectedDay = clickedDay;
-            
-            // THE FIX: Check instantly if the clicked tab is Today, 
-            // and toggle the tint class right now so the CSS paints simultaneously with the click!
             const isTodayTab = (selectedDay === keyForJsDay(todayJsDay()));
+            
             if (!isTodayTab) {
               document.body.classList.remove("has-tint");
             } else {
@@ -808,6 +734,7 @@
           }
         });
       });
+    }
 
     function renderSchedule() {
       let paletteIndex = 0;
@@ -968,7 +895,7 @@
         cards.forEach(card => {
           card.classList.remove("current", "past");
           card.classList.toggle("previous-day", isPreviousDay);
-          card.dataset.baseOpacity = isPreviousDay ? "0.5" : "1";
+          card.dataset.baseOpacity = "1";
         });
         applyActiveAccent(null);
         updateDayProgress(nowMin, null);
@@ -1032,21 +959,13 @@
 
     function applyScrollFade() {
       if (!headerElForTint) return;
-      
       const headerBottom = headerElForTint.getBoundingClientRect().bottom;
-      
-      // We set the vanish point slightly inside the header so the card slides under just a bit
       const vanishPoint = headerBottom - 10; 
-      
-      // A nice slow 120px fade distance
       const SCROLL_FADE_ZONE = 120; 
       const fadeStart = vanishPoint + SCROLL_FADE_ZONE;
 
       document.querySelectorAll(".card").forEach(card => {
         const rect = card.getBoundingClientRect();
-
-        // THE FIX: Measure from 80% down the card instead of the top edge.
-        // This guarantees the first card is safely outside the fade zone when at rest!
         const cardTarget = rect.top + (rect.height * 0.8); 
 
         let scrollFactor;
@@ -1089,7 +1008,6 @@
     const headerEl = document.querySelector("#header");
     const headerSentinelEl = document.querySelector("#headerSentinel");
     
-    // Dynamically measure header height so the fade overlay starts precisely 20px below it
     function updateHeaderHeightCSS() {
       if (headerEl) {
         const h = headerEl.getBoundingClientRect().height;
@@ -1105,10 +1023,6 @@
         ([entry]) => {
           const isCompact = !entry.isIntersecting;
           headerEl.classList.toggle("compact", isCompact);
-          
-          /* NEW: Tells the body background to shrink/expand in sync with the header! */
-          document.body.classList.toggle("header-compact", isCompact);
-          
           requestAnimationFrame(updateHeaderHeightCSS);
         },
         { threshold: 0 }
