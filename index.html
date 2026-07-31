@@ -783,26 +783,31 @@
           const clickedDay = btn.dataset.day;
 
           if (clickedDay === selectedDay) {
-            // Elevator scroll to top if clicking the active day
             window.scrollTo({ top: 0, behavior: "smooth" });
           } else {
             selectedDay = clickedDay;
+            
+            // THE FIX: Check instantly if the clicked tab is Today, 
+            // and toggle the tint class right now so the CSS paints simultaneously with the click!
+            const isTodayTab = (selectedDay === keyForJsDay(todayJsDay()));
+            if (!isTodayTab) {
+              document.body.classList.remove("has-tint");
+            } else {
+              document.body.classList.add("has-tint");
+            }
+
             renderTabs();
             renderSchedule();
             
-            // THE FIX: Only auto-scroll/jump if they are switching back to "Today". 
-            // For future/past days, it leaves your scroll position completely stable!
-            if (selectedDay === keyForJsDay(todayJsDay())) {
+            if (isTodayTab) {
               updateLiveState({ shouldScroll: true });
             } else {
               updateLiveState({ shouldScroll: false });
-              // Optional: gently float back to top when looking at future days so you start at the beginning of their schedule
               window.scrollTo({ top: 0, behavior: "smooth" });
             }
           }
         });
       });
-    }
 
     function renderSchedule() {
       let paletteIndex = 0;
