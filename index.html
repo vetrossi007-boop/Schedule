@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<!-- Add these two lines: -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>NB's Schedule</title>
@@ -49,18 +48,6 @@
     transition: background 300ms ease, --active-accent 600ms ease;
   }
 
-  body.has-tint {
-    --bg-tint: color-mix(in srgb, var(--active-accent, #c8d0df) 18%, #ffffff);
-    background: linear-gradient(
-      180deg, 
-      var(--bg-tint) 0%, 
-      var(--bg-tint) calc(var(--header-height, 150px) * 0.55), 
-      #ffffff calc(var(--header-height, 150px) + 10px),
-      #ffffff 100%
-    );
-    background-attachment: fixed;
-  }
-
   button { font: inherit; }
 
   .app-shell {
@@ -103,16 +90,6 @@
 
   .header::after {
     display: none;
-  }
-
-  .header.tinted {
-    --header-color: color-mix(in srgb, var(--active-accent, #c8d0df) 18%, white);
-    background: linear-gradient(
-      180deg,
-      var(--header-color) 0%,
-      var(--header-color) 45%,
-      rgba(255, 255, 255, 0) 100%
-    );
   }
 
   .header .eyebrow {
@@ -649,26 +626,17 @@
     const dayProgressTrackEl = document.querySelector("#dayProgressTrack");
     const dayProgressTextEl = document.querySelector("#dayProgressText");
     const dayProgressTaskEl = document.querySelector("#dayProgressTask");
-    const phoneEl = document.querySelector(".phone");
-    const headerElForTint = document.querySelector("#header");
 
+    // Simplified to ONLY apply color to day-tabs, leaving the body pure white.
     function applyActiveAccent(cardEl) {
-      if (!phoneEl) return;
       if (!cardEl) {
-        phoneEl.classList.remove("tinted");
-        if (headerElForTint) headerElForTint.classList.remove("tinted");
-        document.body.classList.remove("has-tint");
         document.body.style.removeProperty("--active-accent"); 
         return;
       }
       const accent = cardEl.style.getPropertyValue("--card-accent").trim();
       if (accent) {
-        phoneEl.style.setProperty("--active-accent", accent);
         document.body.style.setProperty("--active-accent", accent);
       }
-      phoneEl.classList.add("tinted");
-      if (headerElForTint) headerElForTint.classList.add("tinted");
-      document.body.classList.add("has-tint");
     }
 
     let lastCurrentTaskId = null;
@@ -732,12 +700,6 @@
             selectedDay = clickedDay;
             const isTodayTab = (selectedDay === keyForJsDay(todayJsDay()));
             
-            if (!isTodayTab) {
-              document.body.classList.remove("has-tint");
-            } else {
-              document.body.classList.add("has-tint");
-            }
-
             renderTabs();
             renderSchedule();
             
@@ -823,6 +785,7 @@
 
     function scrollCardToCenter(card, delay = 0) {
       window.setTimeout(() => {
+        const headerElForTint = document.querySelector("#header");
         const rect = card.getBoundingClientRect();
         const headerHeight = headerElForTint ? headerElForTint.getBoundingClientRect().height : 0;
         const visibleHeight = window.innerHeight - headerHeight;
@@ -975,6 +938,7 @@
     }
 
     function applyScrollFade() {
+      const headerElForTint = document.querySelector("#header");
       if (!headerElForTint) return;
       const headerBottom = headerElForTint.getBoundingClientRect().bottom;
       const vanishPoint = headerBottom - 10; 
