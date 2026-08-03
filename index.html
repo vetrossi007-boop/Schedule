@@ -69,32 +69,26 @@
   }
 
   .phone {
+    position: relative; 
     --active-accent: #5b8fd6;
     width: min(100%, 430px);
     border: none;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.74), var(--shadow);
-    border-radius: 34px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.74);
     background:
       linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.58)),
       rgba(255, 255, 255, 0.62);
     padding: 20px 14px 16px;
     backdrop-filter: blur(22px);
-    clip-path: inset(0 round 34px);
     transition: --active-accent 600ms ease;
-  }
-
-  .header-sentinel {
-    height: 10px;
-    margin-bottom: -10px;
   }
 
   .header {
     --header-color: #fdfdff;
     position: sticky;
-    top: -1px; 
+    top: 0; 
     z-index: 30;
     padding: 20px 14px 12px;
-    margin: -21px -15px 0; 
+    margin: -20px -14px 0; 
     background: linear-gradient(
       to bottom,
       var(--header-color) 0%,
@@ -102,8 +96,6 @@
       rgba(255, 255, 255, 0) 100%
     );
     transition: box-shadow 220ms ease, --header-color 600ms ease, padding 220ms ease;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
   }
 
   .header::after {
@@ -310,10 +302,10 @@
   .day-tab:active { transform: scale(0.96); }
 
   .day-tab.selected {
-    background: linear-gradient(135deg, #5b8fd6, #4fb0b5);
+    background: var(--active-accent, #5b8fd6);
     color: #ffffff;
     border-color: transparent;
-    box-shadow: 0 8px 18px rgba(79, 143, 214, 0.35);
+    box-shadow: 0 6px 14px color-mix(in srgb, var(--active-accent, #5b8fd6) 40%, transparent);
   }
 
   .day-tab.is-today:not(.selected) {
@@ -326,6 +318,21 @@
     gap: 14px;
     padding: 18px 5px 24px;
     position: relative;
+  }
+
+  @keyframes currentTaskFloat {
+    0%, 100% {
+      box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--card-accent) 18%, transparent),
+        0 0 12px 1px color-mix(in srgb, var(--card-accent) 25%, transparent),
+        0 20px 44px rgba(42, 62, 104, 0.16);
+    }
+    50% {
+      box-shadow:
+        0 0 0 6px color-mix(in srgb, var(--card-accent) 24%, transparent),
+        0 0 24px 4px color-mix(in srgb, var(--card-accent) 34%, transparent),
+        0 28px 58px rgba(42, 62, 104, 0.22);
+    }
   }
 
   .card {
@@ -366,13 +373,10 @@
   .card.current {
     background: #ffffff;
     border: 1.5px solid color-mix(in srgb, var(--card-accent) 55%, white);
-    box-shadow:
-      0 0 0 3px color-mix(in srgb, var(--card-accent) 22%, transparent),
-      0 0 10px 1px color-mix(in srgb, var(--card-accent) 30%, transparent),
-      0 18px 38px rgba(42, 62, 104, 0.14);
     opacity: 1;
     z-index: 5;
     transform: translateY(-2px) scale(1.01);
+    animation: currentTaskFloat 3.4s cubic-bezier(0.45, 0, 0.2, 1) infinite;
   }
 
   .card.current .day-label,
@@ -391,8 +395,8 @@
   }
 
   .card.previous-day {
-    filter: none;
-    opacity: 1;
+    filter: grayscale(0.85) saturate(0.3);
+    opacity: 1; 
     box-shadow: 0 8px 18px rgba(42, 62, 104, 0.08);
     transform: translateY(0) scale(0.995);
   }
@@ -522,7 +526,6 @@
 <body>
   <main class="app-shell" aria-label="Weekly schedule">
     <section class="phone">
-      <div class="header-sentinel" id="headerSentinel"></div>
       <header class="header" id="header">
         <p class="eyebrow">Week at a Glance</p>
         <div class="title-row">
@@ -600,7 +603,10 @@
       { time: "21:00 - 21:20", start: 1260, end: 1280, duration: "20 min",
         entries: [{ icon: "sparkle", days: "Daily", title: "Prayer" }] },
       { time: "21:20 - 21:30", start: 1280, end: 1290, duration: "10 min",
-        entries: [{ icon: "rest", days: "Daily", title: "Free Time / Relax" }] },
+        entries: [
+          { icon: "shower", days: "Mon", title: "Personal Care" },
+          { icon: "rest", days: "Tue-Fri", title: "Free Time / Relax" }
+        ] },
       { time: "21:30 - 22:00", start: 1290, end: 1320, duration: "30 min",
         entries: [{ icon: "dinner", days: "Daily", title: "Dinner" }] },
       { time: "22:00 - 22:15", start: 1320, end: 1335, duration: "15 min",
@@ -649,11 +655,13 @@
         phoneEl.classList.remove("tinted");
         if (headerElForTint) headerElForTint.classList.remove("tinted");
         document.body.classList.remove("has-tint");
+        document.body.style.removeProperty("--active-accent"); 
         return;
       }
       const accent = cardEl.style.getPropertyValue("--card-accent").trim();
       if (accent) {
         phoneEl.style.setProperty("--active-accent", accent);
+        document.body.style.setProperty("--active-accent", accent);
       }
       phoneEl.classList.add("tinted");
       if (headerElForTint) headerElForTint.classList.add("tinted");
@@ -682,6 +690,7 @@
 
     function dayLabelFor(days, selected) {
       if (days === "Daily") return "Daily";
+      if (days === "Tue-Fri") return "Tue - Fri";
       const match = DAYS.find(d => d.key === selected);
       return match ? match.full : selected;
     }
@@ -691,11 +700,15 @@
     }
 
     function matchesSelectedDay(entry, selected) {
+      if (entry.days === selected) return true;
+      if (entry.days === "Tue-Fri" && ["Tue", "Wed", "Thu", "Fri"].includes(selected)) return true;
       if (entry.days === "MWF" && ["Mon", "Wed", "Fri"].includes(selected)) return true;
       if (entry.days === "TT" && ["Tue", "Thu"].includes(selected)) return true;
       if (entry.days === "TTS" && ["Tue", "Thu", "Sat"].includes(selected)) return true;
+      
       if (isWeekend(selected)) return entry.essential === true;
       if (entry.days === "Daily") return true;
+      
       return false;
     }
 
@@ -729,7 +742,7 @@
               updateLiveState({ shouldScroll: true });
             } else {
               updateLiveState({ shouldScroll: false });
-              window.scrollTo({ top: 0, behavior: "smooth" });
+              window.scrollTo({ top: 0 }); 
             }
           }
         });
@@ -783,11 +796,12 @@
       scheduleEl.innerHTML = cardsHtml || `<p class="empty-state">Nothing scheduled for this day.</p>`;
 
       const enteringCards = scheduleEl.querySelectorAll(".card-enter");
-      requestAnimationFrame(() => {
+      
+      setTimeout(() => {
         requestAnimationFrame(() => {
           enteringCards.forEach(card => card.classList.remove("card-enter"));
         });
-      });
+      }, 150);
     }
 
     function minutesNow(date) {
@@ -895,7 +909,8 @@
         cards.forEach(card => {
           card.classList.remove("current", "past");
           card.classList.toggle("previous-day", isPreviousDay);
-          card.dataset.baseOpacity = "1";
+          
+          card.dataset.baseOpacity = isPreviousDay ? "0.5" : "1"; 
         });
         applyActiveAccent(null);
         updateDayProgress(nowMin, null);
@@ -926,9 +941,8 @@
       });
 
       upcoming.sort((a, b) => a.distance - b.distance);
-      upcoming.forEach((item, index) => {
-        const brightness = Math.max(brightnessFloor, 0.9 - index * brightnessStep);
-        item.card.dataset.baseOpacity = String(brightness);
+      upcoming.forEach((item) => {
+        item.card.dataset.baseOpacity = "1";
       });
 
       applyActiveAccent(currentCard || (upcoming[0] && upcoming[0].card) || null);
@@ -964,25 +978,29 @@
       const SCROLL_FADE_ZONE = 120; 
       const fadeStart = vanishPoint + SCROLL_FADE_ZONE;
 
-      document.querySelectorAll(".card").forEach(card => {
+      const cards = document.querySelectorAll(".card");
+      
+      const cardData = Array.from(cards).map(card => {
         const rect = card.getBoundingClientRect();
-        const cardTarget = rect.top + (rect.height * 0.8); 
+        return {
+          element: card,
+          cardTarget: rect.top + (rect.height * 0.8),
+          baseOpacity: card.dataset.baseOpacity !== undefined ? parseFloat(card.dataset.baseOpacity) : 1
+        };
+      });
 
+      cardData.forEach(data => {
         let scrollFactor;
-        if (cardTarget >= fadeStart) {
+        if (data.cardTarget >= fadeStart) {
           scrollFactor = 1;
-        } else if (cardTarget <= vanishPoint) {
+        } else if (data.cardTarget <= vanishPoint) {
           scrollFactor = 0;
         } else {
-          scrollFactor = (cardTarget - vanishPoint) / SCROLL_FADE_ZONE;
+          scrollFactor = (data.cardTarget - vanishPoint) / SCROLL_FADE_ZONE;
         }
 
-        const baseOpacity = card.dataset.baseOpacity !== undefined
-          ? parseFloat(card.dataset.baseOpacity)
-          : 1;
-
-        const finalOpacity = Math.max(0, Math.min(1, baseOpacity * scrollFactor));
-        card.style.opacity = String(finalOpacity);
+        const finalOpacity = Math.max(0, Math.min(1, data.baseOpacity * scrollFactor));
+        data.element.style.opacity = String(finalOpacity);
       });
     }
 
@@ -1006,7 +1024,6 @@
     window.setInterval(() => updateLiveState(), 30000);
 
     const headerEl = document.querySelector("#header");
-    const headerSentinelEl = document.querySelector("#headerSentinel");
     
     function updateHeaderHeightCSS() {
       if (headerEl) {
@@ -1018,17 +1035,31 @@
     window.addEventListener('resize', updateHeaderHeightCSS);
     updateHeaderHeightCSS();
 
-    if (headerEl && headerSentinelEl && "IntersectionObserver" in window) {
-      const headerObserver = new IntersectionObserver(
-        ([entry]) => {
-          const isCompact = !entry.isIntersecting;
-          headerEl.classList.toggle("compact", isCompact);
+    let isHeaderCompact = false;
+    
+    window.addEventListener("scroll", () => {
+      if (!headerEl) return;
+      
+      const currentScroll = window.scrollY;
+      
+      if (!isHeaderCompact && currentScroll > 60) {
+        isHeaderCompact = true;
+        headerEl.classList.add("compact");
+        
+        setTimeout(() => {
           requestAnimationFrame(updateHeaderHeightCSS);
-        },
-        { threshold: 0 }
-      );
-      headerObserver.observe(headerSentinelEl);
-    }
+        }, 230);
+      } 
+      else if (isHeaderCompact && currentScroll < 10) {
+        isHeaderCompact = false;
+        headerEl.classList.remove("compact");
+        
+        setTimeout(() => {
+          requestAnimationFrame(updateHeaderHeightCSS);
+        }, 230);
+      }
+    }, { passive: true });
+
   </script>
 </body>
 </html>
