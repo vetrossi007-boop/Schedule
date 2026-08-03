@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Add these two lines: -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>NB's Schedule</title>
 <style>
 
@@ -649,19 +652,6 @@
     const phoneEl = document.querySelector(".phone");
     const headerElForTint = document.querySelector("#header");
 
-    function updateSystemThemeColor(hexColor) {
-      // Deleting the tag and recreating it forces the iOS Homescreen to repaint the status bar.
-      const oldMeta = document.querySelector('meta[name="theme-color"]');
-      if (oldMeta) {
-        oldMeta.remove();
-      }
-      
-      const newMeta = document.createElement('meta');
-      newMeta.name = "theme-color";
-      newMeta.content = hexColor;
-      document.head.appendChild(newMeta);
-    }
-
     function applyActiveAccent(cardEl) {
       if (!phoneEl) return;
       if (!cardEl) {
@@ -669,17 +659,12 @@
         if (headerElForTint) headerElForTint.classList.remove("tinted");
         document.body.classList.remove("has-tint");
         document.body.style.removeProperty("--active-accent"); 
-        
-        // When looking at other days, reset to the exact off-white color of your header
-        updateSystemThemeColor("#fdfdff"); 
         return;
       }
       const accent = cardEl.style.getPropertyValue("--card-accent").trim();
       if (accent) {
         phoneEl.style.setProperty("--active-accent", accent);
         document.body.style.setProperty("--active-accent", accent);
-        
-        updateSystemThemeColor(accent); // Match current task color
       }
       phoneEl.classList.add("tinted");
       if (headerElForTint) headerElForTint.classList.add("tinted");
