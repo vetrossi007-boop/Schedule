@@ -649,6 +649,16 @@
     const phoneEl = document.querySelector(".phone");
     const headerElForTint = document.querySelector("#header");
 
+    function updateSystemThemeColor(hexColor) {
+      let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+      if (!metaThemeColor) {
+        metaThemeColor = document.createElement('meta');
+        metaThemeColor.name = "theme-color";
+        document.head.appendChild(metaThemeColor);
+      }
+      metaThemeColor.setAttribute('content', hexColor);
+    }
+
     function applyActiveAccent(cardEl) {
       if (!phoneEl) return;
       if (!cardEl) {
@@ -656,12 +666,16 @@
         if (headerElForTint) headerElForTint.classList.remove("tinted");
         document.body.classList.remove("has-tint");
         document.body.style.removeProperty("--active-accent"); 
+        
+        updateSystemThemeColor("#ffffff"); // Resets status bar to white when no task
         return;
       }
       const accent = cardEl.style.getPropertyValue("--card-accent").trim();
       if (accent) {
         phoneEl.style.setProperty("--active-accent", accent);
         document.body.style.setProperty("--active-accent", accent);
+        
+        updateSystemThemeColor(accent); // Updates status bar to match task color
       }
       phoneEl.classList.add("tinted");
       if (headerElForTint) headerElForTint.classList.add("tinted");
