@@ -650,13 +650,16 @@
     const headerElForTint = document.querySelector("#header");
 
     function updateSystemThemeColor(hexColor) {
-      let metaThemeColor = document.querySelector('meta[name="theme-color"]');
-      if (!metaThemeColor) {
-        metaThemeColor = document.createElement('meta');
-        metaThemeColor.name = "theme-color";
-        document.head.appendChild(metaThemeColor);
+      // Deleting the tag and recreating it forces the iOS Homescreen to repaint the status bar.
+      const oldMeta = document.querySelector('meta[name="theme-color"]');
+      if (oldMeta) {
+        oldMeta.remove();
       }
-      metaThemeColor.setAttribute('content', hexColor);
+      
+      const newMeta = document.createElement('meta');
+      newMeta.name = "theme-color";
+      newMeta.content = hexColor;
+      document.head.appendChild(newMeta);
     }
 
     function applyActiveAccent(cardEl) {
@@ -667,7 +670,8 @@
         document.body.classList.remove("has-tint");
         document.body.style.removeProperty("--active-accent"); 
         
-        updateSystemThemeColor("#ffffff"); // Resets status bar to white when no task
+        // When looking at other days, reset to the exact off-white color of your header
+        updateSystemThemeColor("#fdfdff"); 
         return;
       }
       const accent = cardEl.style.getPropertyValue("--card-accent").trim();
@@ -675,7 +679,7 @@
         phoneEl.style.setProperty("--active-accent", accent);
         document.body.style.setProperty("--active-accent", accent);
         
-        updateSystemThemeColor(accent); // Updates status bar to match task color
+        updateSystemThemeColor(accent); // Match current task color
       }
       phoneEl.classList.add("tinted");
       if (headerElForTint) headerElForTint.classList.add("tinted");
